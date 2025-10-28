@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: automation
+
+  quartz:
+    auto-startup: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/automation_engine
+    username: rio
+    password: foxsteven1802
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+
+logging:
+  level:
+    org.springframework.boot.context.properties: DEBUG
+
+topic-schedulers:
+  topics:
+    execution:
+      partition-degree: 1
+      thread-count: 25
+      thread-priority: 5
