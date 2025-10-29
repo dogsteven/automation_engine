@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -56,6 +57,21 @@ public class TopicBasedSchedulerProvider {
         return schedulerMap.getOrDefault(key, defaultScheduler);
     }
 
+    public Scheduler provide(UUID id, String group) {
+        final var partitionedSchedulerProperties = topicBasedSchedulerPropertiesMap.get(group);
+        final var index = indexMap.get(group);
+
+        if (partitionedSchedulerProperties == null || index == null) {
+            return defaultScheduler;
+        }
+
+        final var modularIndex = Math.abs(id.hashCode()) % partitionedSchedulerProperties.getPartitionDegree();
+
+        final var key = new SchedulerKey(modularIndex, group);
+
+        return schedulerMap.getOrDefault(key, defaultScheduler);
+    }
+
     @PostConstruct
     public void createSchedulers() {
         for (final var entry: topicBasedSchedulerPropertiesMap.entrySet()) {
@@ -63,15 +79,21 @@ public class TopicBasedSchedulerProvider {
             final var properties = entry.getValue();
 
             for (var index = 0; index < properties.getPartitionDegree(); ++index) {
-                final var key = new SchedulerKey(index, group);
+                try {
+                    final var key = new SchedulerKey(index, group);
 
-                final var scheduler = schedulerCreationTemplate.create(
-                        String.format("%s-%d", group, index),
-                        properties.getThreadCount(),
-                        properties.getThreadPriority()
-                );
+                    final var scheduler = schedulerCreationTemplate.create(
+                            String.format("%s-%d", group, index),
+                            properties.getThreadCount(),
+                            properties.getThreadPriority()
+                    );
 
-                schedulerMap.put(key, scheduler);
+                    scheduler.start();
+
+                    schedulerMap.put(key, scheduler);
+                } catch (SchedulerException exception) {
+                    throw new RuntimeException(exception);
+                }
             }
         }
     }

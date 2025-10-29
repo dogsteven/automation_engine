@@ -2,6 +2,7 @@ package com.foxsteven.automation_engine.execution.domain.logging;
 
 import com.foxsteven.automation_engine.execution.infrastructure.persistence.converters.LogEntryDetailAttributeConverter;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -43,6 +44,7 @@ public class ExecutionLogEntry {
 
     @Builder
     @Getter
+    @AllArgsConstructor
     public static class Identifier implements Serializable {
         private UUID instanceId;
 

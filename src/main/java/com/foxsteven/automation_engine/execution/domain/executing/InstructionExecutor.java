@@ -1,15 +1,16 @@
 package com.foxsteven.automation_engine.execution.domain.executing;
 
+import com.foxsteven.automation_engine.common.abstractions.TimestampProvider;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.ActionHandlerFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.ActivityHandlerFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.ConditionEvaluatorFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.SignalDescriptionHandlerFactory;
-import com.foxsteven.automation_engine.execution.domain.executing.context.InstructionExecutionContext;
+import com.foxsteven.automation_engine.execution.domain.executing.context.StandardExecutionContext;
+import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionInstance;
+import com.foxsteven.automation_engine.execution.domain.executing.instance.exceptions.InvalidExecutionStateException;
+import com.foxsteven.automation_engine.execution.domain.executing.template.instructions.*;
+import com.foxsteven.automation_engine.execution.domain.executing.template.instructions.split_branch.SplitBranch;
 import com.foxsteven.automation_engine.execution.domain.executing.utilities.DiscreteDistributionSampler;
-import com.foxsteven.automation_engine.execution.domain.instance.ExecutionInstance;
-import com.foxsteven.automation_engine.execution.domain.instance.exceptions.InvalidExecutionStateException;
-import com.foxsteven.automation_engine.execution.domain.template.instructions.*;
-import com.foxsteven.automation_engine.execution.domain.template.instructions.split_branch.SplitBranch;
 
 public class InstructionExecutor implements InstructionHandler {
     private final ExecutionInstance instance;
@@ -22,16 +23,20 @@ public class InstructionExecutor implements InstructionHandler {
 
     private final SignalDescriptionHandlerFactory signalDescriptionHandlerFactory;
 
+    private final TimestampProvider timestampProvider;
+
     public InstructionExecutor(ExecutionInstance instance,
                                ActionHandlerFactory actionHandlerFactory,
                                ActivityHandlerFactory activityHandlerFactory,
                                ConditionEvaluatorFactory conditionEvaluatorFactory,
-                               SignalDescriptionHandlerFactory signalDescriptionHandlerFactory) {
+                               SignalDescriptionHandlerFactory signalDescriptionHandlerFactory,
+                               TimestampProvider timestampProvider) {
         this.instance = instance;
         this.actionHandlerFactory = actionHandlerFactory;
         this.activityHandlerFactory = activityHandlerFactory;
         this.conditionEvaluatorFactory = conditionEvaluatorFactory;
         this.signalDescriptionHandlerFactory = signalDescriptionHandlerFactory;
+        this.timestampProvider = timestampProvider;
     }
 
     public void execute(Instruction instruction) {
@@ -42,8 +47,8 @@ public class InstructionExecutor implements InstructionHandler {
         instruction.handle(this);
     }
 
-    private InstructionExecutionContext createInstructionExecutionContext(Instruction instruction) {
-        return new InstructionExecutionContext(instance, instruction);
+    private StandardExecutionContext createInstructionExecutionContext(Instruction instruction) {
+        return new StandardExecutionContext(instance, instruction);
     }
 
     @Override
@@ -105,7 +110,7 @@ public class InstructionExecutor implements InstructionHandler {
             return;
         }
 
-        instance.waitForActivityCompletion(instruction.nextInstructionId());
+        instance.suspendForActivityCompletion(instruction.nextInstructionId());
     }
 
     @Override
@@ -120,21 +125,24 @@ public class InstructionExecutor implements InstructionHandler {
             return;
         }
 
-        instance.waitForSignal(instruction.nextInstructionId(), instruction.nextInstructionIdOnTimeout());
+        final var timeoutTimestamp = timestampProvider.provideOffsetDateTimeNow()
+                        .plusSeconds(instruction.timeoutDuration());
+
+        instance.suspendForSignal(
+                instruction.nextInstructionId(),
+                instruction.nextInstructionIdOnTimeout(),
+                timeoutTimestamp);
     }
 
     @Override
     public void handleSplitInstruction(SplitInstruction instruction) {
-        final var branch = DiscreteDistributionSampler.sample(
-                instruction.branches(),
-                SplitBranch::weight,
-                1000000);
+        final var branch = DiscreteDistributionSampler.sample(instruction.branches(), SplitBranch::weight);
 
         instance.transition(branch.nextInstructionId());
     }
 
     @Override
     public void handleDripInstruction(DripInstruction instruction) {
-        instance.suspendForDripping(instruction.nextInstructionId());
+        instance.suspendForDripping(instruction.dripperId(), instruction.nextInstructionId());
     }
 }

@@ -1,10 +1,11 @@
 package com.foxsteven.automation_engine.execution.domain.executing;
 
+import com.foxsteven.automation_engine.common.abstractions.TimestampProvider;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.ActionHandlerFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.ActivityHandlerFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.ConditionEvaluatorFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.abstractions.SignalDescriptionHandlerFactory;
-import com.foxsteven.automation_engine.execution.domain.instance.ExecutionInstance;
+import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionInstance;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,15 +18,19 @@ public class InstructionExecutorFactory {
 
     private final SignalDescriptionHandlerFactory signalDescriptionHandlerFactory;
 
+    private final TimestampProvider timestampProvider;
+
     public InstructionExecutorFactory(
             ActionHandlerFactory actionHandlerFactory,
             ActivityHandlerFactory activityHandlerFactory,
             ConditionEvaluatorFactory conditionEvaluatorFactory,
-            SignalDescriptionHandlerFactory signalDescriptionHandlerFactory) {
+            SignalDescriptionHandlerFactory signalDescriptionHandlerFactory,
+            TimestampProvider timestampProvider) {
         this.actionHandlerFactory = actionHandlerFactory;
         this.activityHandlerFactory = activityHandlerFactory;
         this.conditionEvaluatorFactory = conditionEvaluatorFactory;
         this.signalDescriptionHandlerFactory = signalDescriptionHandlerFactory;
+        this.timestampProvider = timestampProvider;
     }
 
     public InstructionExecutor create(ExecutionInstance instance) {
@@ -34,6 +39,7 @@ public class InstructionExecutorFactory {
                 actionHandlerFactory,
                 activityHandlerFactory,
                 conditionEvaluatorFactory,
-                signalDescriptionHandlerFactory);
+                signalDescriptionHandlerFactory,
+                timestampProvider);
     }
 }

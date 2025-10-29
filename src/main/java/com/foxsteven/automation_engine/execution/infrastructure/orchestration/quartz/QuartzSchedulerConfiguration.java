@@ -1,9 +1,6 @@
 package com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.quartz.spi.JobFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -22,28 +19,6 @@ public class QuartzSchedulerConfiguration {
     public Scheduler defaultScheduler(
             SchedulerCreationTemplate schedulerCreationTemplate) {
         return schedulerCreationTemplate.create("Default", null, null);
-    }
-
-    @PostConstruct
-    public void startDefaultScheduler(
-            @Qualifier("Default")
-            Scheduler defaultScheduler) {
-        try {
-            defaultScheduler.start();
-        } catch (SchedulerException exception) {
-            throw new RuntimeException(exception);
-        }
-    }
-
-    @PreDestroy
-    public void shutdownDefaultScheduler(
-            @Qualifier("Default")
-            Scheduler defaultScheduler) {
-        try {
-            defaultScheduler.shutdown(true);
-        } catch (SchedulerException exception) {
-            throw new RuntimeException(exception);
-        }
     }
 
     @Bean
@@ -69,7 +44,7 @@ public class QuartzSchedulerConfiguration {
 
     @Bean
     @Qualifier("QuartzDefault")
-    private Properties defaultSchedulerProperties() {
+    public Properties defaultSchedulerProperties() {
         final var props = new Properties();
 
         // job store

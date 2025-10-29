@@ -6,7 +6,7 @@ spring:
     auto-startup: false
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/automation_engine
+    url: jdbc:postgresql://localhost:5432/automation
     username: rio
     password: foxsteven1802
     driver-class-name: org.postgresql.Driver

@@ -8,7 +8,7 @@ import java.util.function.Function;
 public class DiscreteDistributionSampler {
     private static final ThreadLocal<Random> random = new ThreadLocal<>();
 
-    public static <T> T sample(List<T> elements, Function<T, Float> weightAccessor, int resolution) {
+    public static <T> T sample(List<T> elements, Function<T, Float> weightAccessor) {
         if (elements == null || elements.isEmpty()) {
             return null;
         }
@@ -35,9 +35,7 @@ public class DiscreteDistributionSampler {
             random.set(new Random());
         }
 
-        final var integralRandom = random.get().nextInt(0, resolution);
-
-        final var normalizedRandom = (float) integralRandom * 100f / (float) resolution;
+        final var normalizedRandom = random.get().nextFloat() * 100f;
 
         if (normalizedRandom <= accumulativeDensities.get(0)) {
             return elements.get(0);

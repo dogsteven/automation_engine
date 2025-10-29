@@ -39,13 +39,12 @@ public class SchedulerCreationTemplate {
         factory.setDataSource(dataSource);
         factory.setTransactionManager(transactionManager);
         factory.setJobFactory(jobFactory);
+        factory.setSchedulerName(name);
         factory.setAutoStartup(false);
 
         final var properties = new Properties();
 
         properties.putAll(defaultSchedulerProperties);
-
-        properties.put("org.quartz.scheduler.instanceName", name);
 
         if (threadCount != null) {
             properties.put("org.quartz.threadPool.threadCount", threadCount.toString());

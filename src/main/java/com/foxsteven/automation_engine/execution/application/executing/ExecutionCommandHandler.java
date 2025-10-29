@@ -1,11 +1,13 @@
 package com.foxsteven.automation_engine.execution.application.executing;
 
-import com.foxsteven.automation_engine.execution.application.abstractions.ExecutionInstanceRepository;
-import com.foxsteven.automation_engine.execution.application.abstractions.ExecutionTemplateRepository;
+import com.foxsteven.automation_engine.common.abstractions.TimestampProvider;
+import com.foxsteven.automation_engine.execution.application.abstractions.repositories.ExecutionInstanceRepository;
+import com.foxsteven.automation_engine.execution.application.abstractions.repositories.ExecutionTemplateRepository;
 import com.foxsteven.automation_engine.execution.application.exceptions.ExecutionInstanceNotFoundException;
+import com.foxsteven.automation_engine.execution.application.utilities.DomainEventPublisher;
 import com.foxsteven.automation_engine.execution.domain.executing.InstructionExecutorFactory;
-import com.foxsteven.automation_engine.execution.domain.instance.ExecutionData;
-import com.foxsteven.automation_engine.execution.domain.instance.ExecutionInstance;
+import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionData;
+import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionInstance;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,27 +22,36 @@ public class ExecutionCommandHandler {
 
     private final InstructionExecutorFactory instructionExecutorFactory;
 
+    private final DomainEventPublisher domainEventPublisher;
+
+    private final TimestampProvider timestampProvider;
+
     public ExecutionCommandHandler(ExecutionTemplateRepository templateRepository,
                                    ExecutionInstanceRepository instanceRepository,
-                                   InstructionExecutorFactory instructionExecutorFactory) {
+                                   InstructionExecutorFactory instructionExecutorFactory,
+                                   DomainEventPublisher domainEventPublisher,
+                                   TimestampProvider timestampProvider) {
         this.templateRepository = templateRepository;
         this.instanceRepository = instanceRepository;
         this.instructionExecutorFactory = instructionExecutorFactory;
+        this.domainEventPublisher = domainEventPublisher;
+        this.timestampProvider = timestampProvider;
     }
 
     @Transactional
     public UUID startExecution(UUID templateId, Map<String, Object> initialVariables) {
-        final var workflow = templateRepository.findById(templateId).orElse(null);
+        final var template = templateRepository.findById(templateId).orElse(null);
 
-        if (workflow == null) {
+        if (template == null) {
             throw new ExecutionInstanceNotFoundException(templateId);
         }
 
         final var id = UUID.randomUUID();
         final var data = new ExecutionData(initialVariables);
-        final var instance = new ExecutionInstance(id, workflow, data);
+        final var instance = new ExecutionInstance(id, template, data);
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
 
         return id;
     }
@@ -53,9 +64,9 @@ public class ExecutionCommandHandler {
             throw new ExecutionInstanceNotFoundException(instanceId);
         }
 
-        final var workflow = templateRepository.findById(instance.getTemplateId()).orElse(null);
+        final var template = templateRepository.findById(instance.getTemplateId()).orElse(null);
 
-        if (workflow == null) {
+        if (template == null) {
             throw new ExecutionInstanceNotFoundException(instance.getTemplateId());
         }
 
@@ -65,18 +76,20 @@ public class ExecutionCommandHandler {
             instance.forceComplete("No instruction available to execute");
 
             instanceRepository.saveAndFlush(instance);
+            domainEventPublisher.publishDomainEvents(instance);
             return;
         }
 
-        final var currentInstruction = workflow.findInstructionById(currentInstructionId);
+        final var currentInstruction = template.findInstructionById(currentInstructionId);
 
         if (currentInstruction == null) {
             final var reason = "Invalid instruction id: " +
-                    "This error occurs due to workflow definition has changed during execution";
+                    "This error occurs due to template definition has changed during execution";
 
             instance.fail(reason);
 
             instanceRepository.saveAndFlush(instance);
+            domainEventPublisher.publishDomainEvents(instance);
             return;
         }
 
@@ -85,6 +98,7 @@ public class ExecutionCommandHandler {
         instructionExecutor.execute(currentInstruction);
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 
     @Transactional
@@ -98,6 +112,7 @@ public class ExecutionCommandHandler {
         instance.forceComplete(reason);
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 
     @Transactional
@@ -111,6 +126,7 @@ public class ExecutionCommandHandler {
         instance.restart();
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 
     @Transactional
@@ -124,44 +140,50 @@ public class ExecutionCommandHandler {
         instance.resumeOnActivityCompletion(payload);
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 
     @Transactional
-    public void resumeExecutionOnSignal(UUID instanceId, Map<String, Object> payload) {
+    public void resumeExecutionOnSignal(UUID instanceId, String signalToken, Map<String, Object> payload) {
         final var instance = instanceRepository.findById(instanceId).orElse(null);
 
         if (instance == null) {
             throw new ExecutionInstanceNotFoundException(instanceId);
         }
 
-        instance.resumeOnSignal(payload);
+        instance.resumeOnSignal(signalToken, payload);
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 
     @Transactional
-    public void timeoutExecutionWaitingSignal(UUID instanceId) {
+    public void timeoutExecutionWaitingSignal(UUID instanceId, String signalToken) {
         final var instance = instanceRepository.findById(instanceId).orElse(null);
 
         if (instance == null) {
             throw new ExecutionInstanceNotFoundException(instanceId);
         }
 
-        instance.timeoutWaitingSignal();
+        final var now = timestampProvider.provideOffsetDateTimeNow();
+
+        instance.timeoutWaitingSignal(signalToken, now);
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 
     @Transactional
-    public void dripExecution(UUID instanceId) {
+    public void resumeExecutionFromDripping(UUID instanceId) {
         final var instance = instanceRepository.findById(instanceId).orElse(null);
 
         if (instance == null) {
             throw new ExecutionInstanceNotFoundException(instanceId);
         }
 
-        instance.drip();
+        instance.resumeOnDripping();
 
         instanceRepository.saveAndFlush(instance);
+        domainEventPublisher.publishDomainEvents(instance);
     }
 }
