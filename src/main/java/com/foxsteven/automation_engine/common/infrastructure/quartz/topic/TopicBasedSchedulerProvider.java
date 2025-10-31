@@ -1,6 +1,6 @@
-package com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz.topic;
+package com.foxsteven.automation_engine.common.infrastructure.quartz.topic;
 
-import com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz.SchedulerCreationTemplate;
+import com.foxsteven.automation_engine.common.infrastructure.quartz.SchedulerCreationTemplate;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.quartz.Scheduler;

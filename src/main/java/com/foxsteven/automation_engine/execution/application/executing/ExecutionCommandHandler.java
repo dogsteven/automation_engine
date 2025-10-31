@@ -1,10 +1,10 @@
 package com.foxsteven.automation_engine.execution.application.executing;
 
 import com.foxsteven.automation_engine.common.abstractions.TimestampProvider;
+import com.foxsteven.automation_engine.common.utilities.DomainEventPublisher;
 import com.foxsteven.automation_engine.execution.application.abstractions.repositories.ExecutionInstanceRepository;
 import com.foxsteven.automation_engine.execution.application.abstractions.repositories.ExecutionTemplateRepository;
 import com.foxsteven.automation_engine.execution.application.exceptions.ExecutionInstanceNotFoundException;
-import com.foxsteven.automation_engine.execution.application.utilities.DomainEventPublisher;
 import com.foxsteven.automation_engine.execution.domain.executing.InstructionExecutorFactory;
 import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionData;
 import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionInstance;
@@ -39,21 +39,18 @@ public class ExecutionCommandHandler {
     }
 
     @Transactional
-    public UUID startExecution(UUID templateId, Map<String, Object> initialVariables) {
+    public void startExecution(UUID id, UUID templateId, Map<String, Object> initialVariables) {
         final var template = templateRepository.findById(templateId).orElse(null);
 
         if (template == null) {
             throw new ExecutionInstanceNotFoundException(templateId);
         }
 
-        final var id = UUID.randomUUID();
         final var data = new ExecutionData(initialVariables);
         final var instance = new ExecutionInstance(id, template, data);
 
         instanceRepository.saveAndFlush(instance);
         domainEventPublisher.publishDomainEvents(instance);
-
-        return id;
     }
 
     @Transactional

@@ -1,4 +1,4 @@
-package com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz.topic;
+package com.foxsteven.automation_engine.common.infrastructure.quartz.topic;
 
 import lombok.Getter;
 import lombok.Setter;

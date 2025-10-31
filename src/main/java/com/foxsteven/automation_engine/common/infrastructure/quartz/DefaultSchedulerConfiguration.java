@@ -1,4 +1,4 @@
-package com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz;
+package com.foxsteven.automation_engine.common.infrastructure.quartz;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

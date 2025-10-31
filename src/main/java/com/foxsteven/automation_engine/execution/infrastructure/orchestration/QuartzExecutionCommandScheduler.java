@@ -1,9 +1,9 @@
 package com.foxsteven.automation_engine.execution.infrastructure.orchestration;
 
+import com.foxsteven.automation_engine.common.infrastructure.quartz.topic.TopicBasedSchedulerProvider;
 import com.foxsteven.automation_engine.execution.application.abstractions.ExecutionCommandScheduler;
 import com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz.jobs.executing.ExecuteCurrentInstructionJob;
 import com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz.jobs.executing.ResumeExecutionFromDrippingJob;
-import com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz.topic.TopicBasedSchedulerProvider;
 import org.quartz.*;
 import org.springframework.stereotype.Component;
 
@@ -30,16 +30,16 @@ public class QuartzExecutionCommandScheduler implements ExecutionCommandSchedule
 
     @Override
     public void enqueueExecuteCurrentInstruction(UUID instanceId) {
-        final var scheduler = schedulerProvider.provide("execution");
+        final var scheduler = schedulerProvider.provide("executing");
 
         final var jobDetail = JobBuilder.newJob(ExecuteCurrentInstructionJob.class)
-                .withIdentity("ExecuteCurrentInstruction", "execution")
+                .withIdentity("ExecuteCurrentInstruction", "executing")
                 .storeDurably(true)
                 .build();
 
         final var trigger = TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
-                .withIdentity(instanceId.toString(), "execution")
+                .withIdentity(instanceId.toString(), "executing")
                 .usingJobData("instanceId", instanceId.toString())
                 .startNow()
                 .build();
@@ -53,16 +53,16 @@ public class QuartzExecutionCommandScheduler implements ExecutionCommandSchedule
 
     @Override
     public void enqueueResumeExecutionFromDripping(UUID instanceId) {
-        final var scheduler = schedulerProvider.provide("execution");
+        final var scheduler = schedulerProvider.provide("executing");
 
         final var jobDetail = JobBuilder.newJob(ResumeExecutionFromDrippingJob.class)
-                .withIdentity("ResumeExecutionFromDripping", "execution")
+                .withIdentity("ResumeExecutionFromDripping", "executing")
                 .storeDurably(true)
                 .build();
 
         final var trigger = TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
-                .withIdentity(instanceId.toString(), "execution")
+                .withIdentity(instanceId.toString(), "executing")
                 .usingJobData("instanceId", instanceId.toString())
                 .startNow()
                 .build();
@@ -78,16 +78,16 @@ public class QuartzExecutionCommandScheduler implements ExecutionCommandSchedule
     public void scheduleTimeoutExecutionSignalWaiting(UUID instanceId,
                                                       String signalToken,
                                                       OffsetDateTime timeoutTimestamp) {
-        final var scheduler = schedulerProvider.provide(instanceId, "execution");
+        final var scheduler = schedulerProvider.provide(instanceId, "executing");
 
         final var jobDetail = JobBuilder.newJob(ExecuteCurrentInstructionJob.class)
-                .withIdentity("ExecuteCurrentInstruction", "execution")
+                .withIdentity("ExecuteCurrentInstruction", "executing")
                 .storeDurably(true)
                 .build();
 
         final var trigger = TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
-                .withIdentity(instanceId.toString() + ":" + signalToken, "execution:timeout")
+                .withIdentity(instanceId.toString() + ":" + signalToken, "executing:timeout")
                 .usingJobData("instanceId", instanceId.toString())
                 .usingJobData("signalToken", signalToken)
                 .startAt(Date.from(timeoutTimestamp.toInstant()))
@@ -102,10 +102,10 @@ public class QuartzExecutionCommandScheduler implements ExecutionCommandSchedule
 
     @Override
     public void unscheduleTimeoutExecutionSignalWaiting(UUID instanceId, String signalToken) {
-        final var scheduler = schedulerProvider.provide(instanceId, "execution");
+        final var scheduler = schedulerProvider.provide(instanceId, "executing");
 
         final var triggerKey = TriggerKey
-                .triggerKey(instanceId.toString() + ":" + signalToken, "execution");
+                .triggerKey(instanceId.toString() + ":" + signalToken, "executing");
 
         try {
             if (scheduler.checkExists(triggerKey)) {

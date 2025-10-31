@@ -25,7 +25,11 @@ logging:
 
 topic-schedulers:
   topics:
-    execution:
+    executing:
+      partition-degree: 1
+      thread-count: 25
+      thread-priority: 5
+    dripping:
       partition-degree: 1
       thread-count: 25
       thread-priority: 5

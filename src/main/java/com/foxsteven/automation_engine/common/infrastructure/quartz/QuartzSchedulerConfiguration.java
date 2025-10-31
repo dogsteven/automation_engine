@@ -1,4 +1,4 @@
-package com.foxsteven.automation_engine.execution.infrastructure.orchestration.quartz;
+package com.foxsteven.automation_engine.common.infrastructure.quartz;
 
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
