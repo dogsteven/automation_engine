@@ -1,6 +1,6 @@
 package com.foxsteven.automation_engine.execution.application.logging;
 
-import com.foxsteven.automation_engine.execution.domain.executing.instance.events.*;
+import com.foxsteven.automation_engine.execution.domain.instance.events.*;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 

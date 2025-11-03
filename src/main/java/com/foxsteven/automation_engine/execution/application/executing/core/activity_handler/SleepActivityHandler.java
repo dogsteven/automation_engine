@@ -1,7 +1,7 @@
 package com.foxsteven.automation_engine.execution.application.executing.core.activity_handler;
 
-import com.foxsteven.automation_engine.execution.domain.executing.context.ReadWriteExecutionContext;
-import com.foxsteven.automation_engine.execution.domain.executing.template.instructions.activity.SleepActivity;
+import com.foxsteven.automation_engine.execution.domain.executor.context.ReadWriteExecutionContext;
+import com.foxsteven.automation_engine.execution.domain.template.instructions.activity.SleepActivity;
 import org.springframework.stereotype.Component;
 
 @Component

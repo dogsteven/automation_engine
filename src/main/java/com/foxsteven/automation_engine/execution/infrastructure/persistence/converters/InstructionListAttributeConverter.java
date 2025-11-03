@@ -2,7 +2,7 @@ package com.foxsteven.automation_engine.execution.infrastructure.persistence.con
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.foxsteven.automation_engine.execution.domain.executing.template.instructions.Instruction;
+import com.foxsteven.automation_engine.execution.domain.template.instructions.Instruction;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

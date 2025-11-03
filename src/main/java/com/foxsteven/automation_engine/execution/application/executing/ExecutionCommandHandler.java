@@ -5,9 +5,9 @@ import com.foxsteven.automation_engine.common.utilities.DomainEventPublisher;
 import com.foxsteven.automation_engine.execution.application.abstractions.repositories.ExecutionInstanceRepository;
 import com.foxsteven.automation_engine.execution.application.abstractions.repositories.ExecutionTemplateRepository;
 import com.foxsteven.automation_engine.execution.application.exceptions.ExecutionInstanceNotFoundException;
-import com.foxsteven.automation_engine.execution.domain.executing.InstructionExecutorFactory;
-import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionData;
-import com.foxsteven.automation_engine.execution.domain.executing.instance.ExecutionInstance;
+import com.foxsteven.automation_engine.execution.domain.executor.InstructionExecutorFactory;
+import com.foxsteven.automation_engine.execution.domain.instance.ExecutionData;
+import com.foxsteven.automation_engine.execution.domain.instance.ExecutionInstance;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

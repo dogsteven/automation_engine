@@ -1,7 +1,7 @@
 package com.foxsteven.automation_engine.execution.domain.dripping;
 
 import com.foxsteven.automation_engine.execution.domain.dripping.exceptions.InvalidDripperStateException;
-import com.foxsteven.automation_engine.execution.domain.executing.instance.exceptions.InvalidExecutionStateException;
+import com.foxsteven.automation_engine.execution.domain.instance.exceptions.InvalidExecutionStateException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

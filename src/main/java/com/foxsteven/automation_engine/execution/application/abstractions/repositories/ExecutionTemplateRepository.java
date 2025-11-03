@@ -1,6 +1,6 @@
 package com.foxsteven.automation_engine.execution.application.abstractions.repositories;
 
-import com.foxsteven.automation_engine.execution.domain.executing.template.ExecutionTemplate;
+import com.foxsteven.automation_engine.execution.domain.template.ExecutionTemplate;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

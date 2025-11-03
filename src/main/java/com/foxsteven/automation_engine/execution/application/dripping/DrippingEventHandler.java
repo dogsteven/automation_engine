@@ -1,6 +1,6 @@
 package com.foxsteven.automation_engine.execution.application.dripping;
 
-import com.foxsteven.automation_engine.execution.domain.executing.instance.events.ExecutionSuspendedForDripping;
+import com.foxsteven.automation_engine.execution.domain.instance.events.ExecutionSuspendedForDripping;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
